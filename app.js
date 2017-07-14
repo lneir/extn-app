@@ -29,13 +29,13 @@ SYMPHONY.remote.hello().then(function(data) {
     // You must add the symphony-external-app class to the body element
     document.body.className = "symphony-external-app " + themeColor + " " + themeSize;
 
-    SYMPHONY.application.connect("hello", ["modules", "applications-nav", "ui", "share"], ["hello:app"]).then(function(response) {
+    SYMPHONY.application.connect(" c7556cd688cd4c5e9ea17b06f6c6c01e", ["modules", "applications-nav", "ui", "share"], ["hello:app"]).then(function(response) {
 
         // The userReferenceId is an anonymized random string that can be used for uniquely identifying users.
-        // The userReferenceId persists until the application is uninstalled by the user. 
+        // The userReferenceId persists until the application is uninstalled by the user.
         // If the application is reinstalled, the userReferenceId will change.
         var userId = response.userReferenceId;
-        
+
         // Subscribe to Symphony's services
         var modulesService = SYMPHONY.services.subscribe("modules");
         var navService = SYMPHONY.services.subscribe("applications-nav");
@@ -114,7 +114,7 @@ SYMPHONY.remote.hello().then(function(data) {
             "author": document.getElementById("article-author").innerHTML,
             "thumbnail": document.getElementById("article-thumbnail").src,
             // In this case, the shared article has an ID, which is used to deeplink back into our application
-            "id": document.getElementById("article-id").innerHTML               
+            "id": document.getElementById("article-id").innerHTML
         };
         shareButton.addEventListener("click", function(){
             shareService.share(
@@ -134,7 +134,7 @@ SYMPHONY.remote.hello().then(function(data) {
             "author": document.getElementById("article-author-2").innerHTML,
             "thumbnail": document.getElementById("article-thumbnail-2").src,
             // In this case, the shared article has an href link, which should be opened in a new browser window
-            "href": document.getElementById("article-link-2").href    
+            "href": document.getElementById("article-link-2").href
         };
         shareButton2.addEventListener("click", function(){
             shareService.share(
@@ -165,7 +165,7 @@ SYMPHONY.remote.hello().then(function(data) {
                     document.getElementById("cashtag").value = cashtag;
                 }
             }
-        } 
+        }
         // SHARE: If the app is opened in the context of an article, show the articleId in the text box on the app.
         // @TODO(anjana): Refactor this redundant code
         else if (querystring && /article/.test(querystring)) {
@@ -181,7 +181,7 @@ SYMPHONY.remote.hello().then(function(data) {
 
         // Implement methods on the application module service
         helloAppService.implement({
-            // If the menu item is selected, display the About text 
+            // If the menu item is selected, display the About text
             menuSelect: function(itemId) {
                 if (itemId == "hello-menu-item") {
                     document.getElementById("about-hello-world-app").className = "";
