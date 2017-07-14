@@ -27,7 +27,7 @@ SYMPHONY.remote.hello().then(function(data) {
     // Register our application with the Symphony client:
     // Subscribe the application to remote (i.e. Symphony's) services
     // Register our own local services
-    SYMPHONY.application.register(" c7556cd688cd4c5e9ea17b06f6c6c01e", ["modules", "applications-nav", "ui", "share"], ["hello:controller"]).then(function(response) {
+    SYMPHONY.application.register("c7556cd688cd4c5e9ea17b06f6c6c01e", ["modules", "applications-nav", "ui", "share"], ["hello:controller"]).then(function(response) {
 
         // The userReferenceId is an anonymized random string that can be used for uniquely identifying users.
         // The userReferenceId persists until the application is uninstalled by the user.

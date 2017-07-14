@@ -29,7 +29,7 @@ SYMPHONY.remote.hello().then(function(data) {
     // You must add the symphony-external-app class to the body element
     document.body.className = "symphony-external-app " + themeColor + " " + themeSize;
 
-    SYMPHONY.application.connect(" c7556cd688cd4c5e9ea17b06f6c6c01e", ["modules", "applications-nav", "ui", "share"], ["hello:app"]).then(function(response) {
+    SYMPHONY.application.connect("c7556cd688cd4c5e9ea17b06f6c6c01e", ["modules", "applications-nav", "ui", "share"], ["hello:app"]).then(function(response) {
 
         // The userReferenceId is an anonymized random string that can be used for uniquely identifying users.
         // The userReferenceId persists until the application is uninstalled by the user.
