@@ -30,7 +30,7 @@ SYMPHONY.remote.hello().then(function(data) {
     SYMPHONY.application.register("hello", ["modules", "applications-nav", "ui", "share"], ["hello:controller"]).then(function(response) {
 
         // The userReferenceId is an anonymized random string that can be used for uniquely identifying users.
-        // The userReferenceId persists until the application is uninstalled by the user. 
+        // The userReferenceId persists until the application is uninstalled by the user.
         // If the application is reinstalled, the userReferenceId will change.
         var userId = response.userReferenceId;
 
@@ -46,7 +46,7 @@ SYMPHONY.remote.hello().then(function(data) {
         // LEFT NAV: Add an extra left navigation item that can be removed by clicking on the "Remove Left Nav Item Button"
         navService.add("hello-nav-remove", "Removable Left Nav Item", "hello:controller");
 
-        // UI: Add elements to the Symphony user interface: 
+        // UI: Add elements to the Symphony user interface:
         // buttons on IMs/MIMs/rooms, links on cashtag/hashtag hover cards and settings
         uiService.registerExtension("single-user-im", "hello-im", "hello:controller", {label: "IM Button", data: {"datetime": Date()}});
         uiService.registerExtension("multi-user-im", "hello-mim", "hello:controller", {label: "MIM Button"});
@@ -66,10 +66,10 @@ SYMPHONY.remote.hello().then(function(data) {
             select: function(id) {
                 if (id == "hello-nav") {
                    // Focus the left navigation item when clicked
-                    navService.focus("hello-nav"); 
+                    navService.focus("hello-nav");
                 }
-                
-                modulesService.show("hello", {title: "Hello World App"}, "hello:controller", "https://localhost:4000/app.html", {
+
+                modulesService.show("hello", {title: "Hello World App"}, "hello:controller", "https://lneir.github.io/extn-app/app.html", {
                     // You must specify canFloat in the module options so that the module can be pinned
                     "canFloat": true,
                 });
@@ -95,7 +95,7 @@ SYMPHONY.remote.hello().then(function(data) {
                     // Include the cashtag in the URL parameters.
                     var cashtag = payload.entity.name;
                     var moduleTitle = "Hello World App: " + cashtag;
-                    modulesService.show("hello-cashtag", {title: moduleTitle}, "hello:controller", "https://localhost:4000/app.html?cashtag=" + cashtag, {
+                    modulesService.show("hello-cashtag", {title: moduleTitle}, "hello:controller", "https://lneir.github.io/extn-app/app.html?cashtag=" + cashtag, {
                         "canFloat": true,
                         // Use parentModuleId to open a new module without closing the original module ("hello")
                         "parentModuleId": "hello"
@@ -113,13 +113,13 @@ SYMPHONY.remote.hello().then(function(data) {
             link: function(type, articleId) {
                 if(type == "article") {
                     var moduleTitle = "Hello World App: " + articleId;
-                    modulesService.show("hello-article", {title: moduleTitle}, "hello:controller", "https://localhost:4000/app.html?article=" + articleId, {
+                    modulesService.show("hello-article", {title: moduleTitle}, "hello:controller", "https://lneir.github.io/extn-app/app.html?article=" + articleId, {
                         "canFloat": true,
                         // Use parentModuleId to open a new module without closing the original module ("hello")
                         "parentModuleId": "hello"
                     });
                     modulesService.focus("hello-article");
-                }    
+                }
             }
 
         });
