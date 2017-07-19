@@ -1,25 +1,7 @@
-/**
-* Licensed to the Symphony Software Foundation (SSF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The SSF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*   http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing,
-* software distributed under the License is distributed on an
-* "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-* KIND, either express or implied.  See the License for the
-* specific language governing permissions and limitations
-* under the License.
-**/
 
 // Create our own local controller service.
 // We have namespaced local services with "hello:"
-var helloControllerService = SYMPHONY.services.register("hello:controller");
+var shareControllerService = SYMPHONY.services.register('hello:controller');
 
 // All Symphony services are namespaced with SYMPHONY
 SYMPHONY.remote.hello().then(function(data) {
@@ -27,101 +9,210 @@ SYMPHONY.remote.hello().then(function(data) {
     // Register our application with the Symphony client:
     // Subscribe the application to remote (i.e. Symphony's) services
     // Register our own local services
-    SYMPHONY.application.register("c7556cd688cd4c5e9ea17b06f6c6c01e", ["modules", "applications-nav", "ui", "share"], ["hello:controller"]).then(function(response) {
+    SYMPHONY.application.register('hello', ['share'], ['hello:controller']).then(function(response) {
 
         // The userReferenceId is an anonymized random string that can be used for uniquely identifying users.
         // The userReferenceId persists until the application is uninstalled by the user.
         // If the application is reinstalled, the userReferenceId will change.
-        var userId = response.userReferenceId;
+        //var userId = response.userReferenceId;
 
         // Subscribe to Symphony's services
-        var modulesService = SYMPHONY.services.subscribe("modules");
-        var navService = SYMPHONY.services.subscribe("applications-nav");
-        var uiService = SYMPHONY.services.subscribe("ui");
-        var shareService = SYMPHONY.services.subscribe("share");
-
-        // LEFT NAV: Add an entry to the left navigation for our application
-        navService.add("hello-nav", "Hello World App", "hello:controller");
-
-        // LEFT NAV: Add an extra left navigation item that can be removed by clicking on the "Remove Left Nav Item Button"
-        navService.add("hello-nav-remove", "Removable Left Nav Item", "hello:controller");
-
-        // UI: Add elements to the Symphony user interface:
-        // buttons on IMs/MIMs/rooms, links on cashtag/hashtag hover cards and settings
-        uiService.registerExtension("single-user-im", "hello-im", "hello:controller", {label: "IM Button", data: {"datetime": Date()}});
-        uiService.registerExtension("multi-user-im", "hello-mim", "hello:controller", {label: "MIM Button"});
-        uiService.registerExtension("room", "hello-room", "hello:controller", {label: "Room Button"});
-        uiService.registerExtension("profile", "hello-profile", "hello:controller", {label: "Profile Button"});
-        uiService.registerExtension("hashtag", "hello-hashtag", "hello:controller", {label: "Hashtag Link"});
-        uiService.registerExtension("cashtag", "hello-cashtag", "hello:controller", {label: "Cashtag Link"});
-        uiService.registerExtension("settings", "hello-settings", "hello:controller", {label: "Settings Link"});
-
-        // SHARE: Set the controller that implements the "link" method invoked when shared articles are clicked on.
-        shareService.handleLink("article", "hello:controller");
+        var shareService = SYMPHONY.services.subscribe('share');
 
         // Implement some methods on our local service. These will be invoked by user actions.
-        helloControllerService.implement({
+        shareControllerService.implement({
+            // currently nothing implemented
+        });
 
-            // LEFT NAV & MODULE: When the left navigation item is clicked on, invoke Symphony's module service to show our application in the grid
-            select: function(id) {
-                if (id == "hello-nav") {
-                   // Focus the left navigation item when clicked
-                    navService.focus("hello-nav");
-                }
+        // all possible state for our state machine
+        var STATES = Object.freeze({
+            'findPort': 1,
+            'encryptHandshake': 2,
+            'getSessionToken': 3,
+            'connectWS': 4,
+            'connectedWS': 5
+        });
 
-                modulesService.show("hello", {title: "Hello World App"}, "hello:controller", "https://lneir.github.io/extn-app/app.html", {
-                    // You must specify canFloat in the module options so that the module can be pinned
-                    "canFloat": true,
-                });
-                // Focus the module after it is shown
-                modulesService.focus("hello");
-            },
+        // current state of our state machine
+        var state;
 
-            // UI: Execute the following when UI extensions are clicked.
-            trigger: function(uiClass, id, payload, data) {
-                if (uiClass == "single-user-im") {
-                    console.log('IM button was clicked on ' + data.datetime + '.');
-                } else if (uiClass == "multi-user-im") {
-                    console.log('MIM button was clicked.');
-                } else if (uiClass == "room") {
-                    console.log('Room button was clicked.');
-                } else if (uiClass == "profile") {
-                    console.log('Profile button was clicked.');
-                } else if (uiClass == "hashtag") {
-                    console.log('Hashtag link was clicked.');
-                } else if (uiClass == "cashtag") {
-                    // Open our app in the context of the cashtag:
-                    // Put the cashtag in the module title.
-                    // Include the cashtag in the URL parameters.
-                    var cashtag = payload.entity.name;
-                    var moduleTitle = "Hello World App: " + cashtag;
-                    modulesService.show("hello-cashtag", {title: moduleTitle}, "hello:controller", "https://lneir.github.io/extn-app/app.html?cashtag=" + cashtag, {
-                        "canFloat": true,
-                        // Use parentModuleId to open a new module without closing the original module ("hello")
-                        "parentModuleId": "hello"
-                    });
-                    modulesService.focus("hello-cashtag");
-                } else if (uiClass == "settings") {
-                    console.log('Settings link was clicked.')
-                }
-                console.dir(payload);
-            },
+        var symphonyDevKey;
 
-            // SHARE: Open our app in the context of an article:
-            // Put the article in the moudle title.
-            // Include the article in the URL parameters.
-            link: function(type, articleId) {
-                if(type == "article") {
-                    var moduleTitle = "Hello World App: " + articleId;
-                    modulesService.show("hello-article", {title: moduleTitle}, "hello:controller", "https://lneir.github.io/extn-app/app.html?article=" + articleId, {
-                        "canFloat": true,
-                        // Use parentModuleId to open a new module without closing the original module ("hello")
-                        "parentModuleId": "hello"
-                    });
-                    modulesService.focus("hello-article");
-                }
+        // obtained from state: findPort
+        var MIN_PORT=9000;
+        var MAX_PORT=9005;
+        var port = MIN_PORT;
+
+        // obtained from state: 'encryptHandshake'
+
+        var HS_BASE_URL = 'http://localhost';
+        var WS_BASE_URL = 'ws://localhost';
+
+        // obtained from state 'getSessionToken'
+        var sessionToken;
+
+        function nextState(newState) {
+            if (newState === state) {
+                return;
             }
 
-        });
+            state = newState;
+
+            console.log('new State=', state);
+
+            switch(newState) {
+                case STATES.findPort:
+                    findPort();
+                break;
+                case STATES.encryptHandshake:
+                    doEncryptHandshake();
+                break;
+
+                case STATES.getSessionToken:
+                default:
+                    getSessionToken();
+                break;
+
+                case STATES.connectWS:
+                    connectToWebSocket();
+                break;
+
+                case STATES.connectedWS:
+                    // nothing to do, event WS event listeners handle events
+                break;
+            }
+        }
+
+        function send(url, payload) {
+            return new Promise(function(resolve, reject) {
+                var type = payload ? 'POST' : 'GET';
+                var xhr = new XMLHttpRequest();
+                xhr.open(type, url, true);
+                xhr.onload = function() {
+                    resolve(xhr.responseText);
+                }
+                xhr.onerror = function() {
+                    reject(xhr.statusText);
+                }
+                if (payload) {
+                    xhr.setRequestHeader('Content-type', 'application/json');
+                    var jsonPayload = JSON.stringify(payload);
+                    xhr.send(jsonPayload);
+                } else {
+                    xhr.send();
+                }
+            });
+        }
+
+        var findPortTimeout;
+
+        function findPort() {
+            // scan port starting at MIN_PORT
+            // if found then move to state 'encryptHandShake'
+            // if not found, then increment port and scan again
+            // if MAX_PORT reached then timeout and retry later.
+
+            clearTimeout(findPortTimeout);
+
+            send(HS_BASE_URL + ':' + port + '/ping')
+            .then(function(portResp) {
+                // check for success
+                if (portResp == port) {
+                    nextState(STATES.encryptHandshake);
+                } else {
+                    throw new Error('invalid port response: ' + portResp);
+                }
+            })
+            .catch(function(err) {
+                // fail: try another port
+                var timeout;
+                port++;
+                console.error('failed to ping: ' + err + ' trying next port: ' + port);
+                if (port > MAX_PORT) {
+                    port = MIN_PORT;
+                    timeout = 30000;
+                } else {
+                    timeout = 1000;
+                }
+                clearTimeout(findPortTimeout);
+                findPortTimeout = setTimeout(findPort, timeout);
+            });
+        }
+
+        function doEncryptHandshake() {
+            nextState(STATES.getSessionToken);
+        }
+
+        function getSessionToken() {
+            var payload = {
+                command: 'handshake',
+                productId: 'xyz',
+                apiKey: '123'
+
+            };
+            send(HS_BASE_URL + ':' + port + '/sxs/v1', payload)
+            .then(function(resp) {
+                // success - maybe?
+                var result = JSON.parse(resp);
+                if (result && result.isSuccess && result.sessionToken) {
+                    sessionToken = result.sessionToken;
+                    nextState(STATES.connectWS);
+                } else {
+                    var err = result && result.error;
+                    throw new Error('invalid resp when getting session token:' + err);
+                }
+            })
+            .catch(function(err) {
+                console.error('failed to get session token: ' + err);
+                nextState(STATES.findPort);
+            });
+        }
+
+        function share(title, context, appURI, image) {
+            // Note: if calling share when share dialog in progress, will
+            // replace existing dialog.
+            // shareService.share(
+            //     'article',
+            //     articleOptions
+            // );
+            console.log('sharing... title:' + title + ' context:', context + ' appURI:' + appURI);
+        }
+
+        function connectToWebSocket() {
+
+            // Create WebSocket connection.
+            const socket = new WebSocket(WS_BASE_URL + ':' + port + '/sxs/v1/notifications?sessionToken=' + sessionToken);
+
+            // Connection opened
+            socket.addEventListener('open', function (event) {
+                nextState(STATES.connectedWS);
+            });
+
+            socket.addEventListener('error', function() {
+                nextState(STATES.findPort);
+            });
+
+            socket.addEventListener('close', function() {
+                nextState(STATES.findPort);
+            });
+
+            // Listen for messages
+            socket.addEventListener('message', function (event) {
+                console.log('Message from server', event.data);
+                if (event && event.data) {
+                    try {
+                        var msg = JSON.parse(event.data);
+                        if (msg && msg.command === 'shareApp') {
+                            share(msg.title, msg.context, msg.appURI, msg.image);
+                        }
+                    } catch (e) {
+                        console.error('can not parse message event.date:' + event.data)
+                    }
+                }
+            });
+        }
+
+        nextState(STATES.findPort);
+
     }.bind(this))
 }.bind(this));
