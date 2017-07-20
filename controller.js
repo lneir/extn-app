@@ -45,8 +45,8 @@ SYMPHONY.remote.hello().then(function(data) {
 
         // obtained from state: 'encryptHandshake'
 
-        var HS_BASE_URL = 'http://localhost';
-        var WS_BASE_URL = 'ws://localhost';
+        var HS_BASE_URL = 'http://127.0.0.1';
+        var WS_BASE_URL = 'ws://127.0.0.1';
 
         // obtained from state 'getSessionToken'
         var sessionToken;
